@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Group Chat</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="form-box">
+
+            <div class="logo">
+                GC
+            </div>
+
+            <h1>Welcome Back</h1>
+
+            <p class="subtitle">
+                Sign in to continue to your group chats
+            </p>
+
+            <form id="loginForm">
+
+                <div class="input-group">
+
+                    <label for="loginInput">
+                        Email or Phone Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="loginInput"
+                        placeholder="Enter email or phone number"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <div class="password-label">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <a href="#" class="forgot-password">
+                            Forgot password?
+                        </a>
+
+                    </div>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button type="submit">
+                    Login
+                    <span class="button-arrow">→</span>
+                </button>
+
+                <p id="message"></p>
+
+            </form>
+
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+
+            <p class="switch-page">
+
+                Don't have an account?
+
+                <a href="signup.html">
+                    Create account
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script src="js/login.js"></script>
+
+</body>
+
+</html>
+
