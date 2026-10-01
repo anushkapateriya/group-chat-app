@@ -1,21 +1,31 @@
 const signupForm = document.getElementById("signupForm");
 const message = document.getElementById("message");
 
-signupForm.addEventListener("submit", function (event) {
-event.preventDefault();
+signupForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const password = document.getElementById("password").value;
 
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const phone = document.getElementById("phone").value;
-const password = document.getElementById("password").value;
+    try {
+        const response = axios.post(`${API_URL}/signup`, {
+            name,
+            email,
+            phone,
+            password
+        });
 
-console.log("Name:", name);
-console.log("Email:", email);
-console.log("Phone:", phone);
-console.log("Password:", password);
+        message.textContent = response.data.message;
 
-message.textContent = "Signup form submitted successfully.";
+        signupForm.reset();
 
-
+    } catch (error) {
+        if (error.response) {
+            message.textContent = error.response.data.message;
+        } else {
+            message.textContent = "Unable to connect to server";
+        }
+    }
 });
