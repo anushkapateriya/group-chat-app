@@ -4,6 +4,8 @@ if (!token) {
     window.location.href = "login.html";
 }
 
+const socket = io(API_URL);
+
 const messageForm = document.getElementById("messageForm");
 const messageInput = document.getElementById("messageInput");
 const messagesContainer = document.getElementById("messagesContainer");
@@ -226,29 +228,9 @@ async function (event) {
         );
 
 
-        const savedMessage =
-            response.data.data;
-
-
-        const messageTime =
-            new Date(
-                savedMessage.createdAt
-            ).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-
-
-        addMessage(
-            savedMessage.message,
-            "user",
-            messageTime
-        );
-
-
         messageInput.value = "";
 
-        messageInput.focus();
+        messageInput.focus();      
 
 
         messagesContainer.scrollTop =
@@ -297,3 +279,29 @@ Focus message input.
 */
 
 messageInput.focus();
+
+socket.on("newMessage", function (data) {
+
+    const messageTime = new Date(
+        data.createdAt
+    ).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const currentUserId = getCurrentUserIdFromToken();
+
+    const sender =
+        data.userId === currentUserId
+            ? "user"
+            : "other";
+
+    addMessage(
+        data.message,
+        sender,
+        messageTime
+    );
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+});

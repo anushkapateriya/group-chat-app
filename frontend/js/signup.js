@@ -10,7 +10,7 @@ signupForm.addEventListener("submit", async function (event) {
     const password = document.getElementById("password").value;
 
     try {
-        const response = axios.post(`${API_URL}/signup`, {
+        const response = await axios.post(`${API_URL}/signup`, {
             name,
             email,
             phone,

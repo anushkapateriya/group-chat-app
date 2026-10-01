@@ -18,6 +18,15 @@ try {
         message: message.trim()
     });
 
+    const io = req.app.get("io");
+
+    io.emit("newMessage", {
+        id: newMessage.id,
+        userId: newMessage.userId,
+        message: newMessage.message,
+        createdAt: newMessage.createdAt
+    });
+
     return res.status(201).json({
         message: "Message sent successfully",
         data: newMessage
