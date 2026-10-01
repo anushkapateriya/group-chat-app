@@ -4,8 +4,10 @@ require("dotenv").config();
 
 const sequelize = require("./config/database");
 const User = require("./models/user");
+require("./models/associations");
 
 const userRoutes = require("./routes/userRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 
 const app = express();
 
@@ -13,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/", userRoutes);
-
+app.use("/", messageRoutes);
 
 sequelize
     .authenticate()
