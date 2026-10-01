@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>Chat</title>
+
+<link rel="stylesheet" href="css/chat.css">
+
+
+</head>
+
+<body>
+
+
+<div class="chat-container">
+
+    <!-- Chat Header -->
+    <header class="chat-header">
+
+        <div class="chat-user">
+            <div class="user-avatar">
+                <span id="chatUserInitial"></span>
+            </div>
+
+            <div class="user-info">
+                <h2 id="chatUserName"></h2>
+                <p id="chatUserStatus"></p>
+            </div>
+        </div>
+
+    </header>
+
+
+    <!-- Messages Area -->
+    <main class="messages-container" id="messagesContainer">
+
+        <!-- Messages will be added here dynamically -->
+
+    </main>
+
+
+    <!-- Message Input Area -->
+    <footer class="message-input-container">
+
+        <form id="messageForm">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Type a message..."
+                autocomplete="off"
+            >
+
+            <button type="submit" id="sendButton">
+                Send
+            </button>
+
+        </form>
+
+    </footer>
+
+</div>
+
+
+<script src="js/chat.js"></script>
+
+
+</body>
+</html>
