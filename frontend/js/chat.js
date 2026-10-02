@@ -10,9 +10,32 @@ const socket = io(API_URL, {
     }
 });
 
-const roomId = "personal-room";
+const userEmailInput = document.getElementById("userEmail");
+const joinRoomButton = document.getElementById("joinRoomButton");
 
-socket.emit("join_room", roomId);
+let roomId = null;
+
+joinRoomButton.addEventListener("click", function () {
+    const otherUserEmail = userEmailInput.value.trim();
+
+    if (!otherUserEmail) {
+        return;
+    }
+
+    if (roomId) {
+        socket.emit("leave_room", roomId);
+    }
+
+    const currentUserId = getCurrentUserIdFromToken();
+
+    roomId = [currentUserId, otherUserEmail]
+        .sort()
+        .join("_");
+
+    socket.emit("join_room", roomId);
+
+    console.log("Joined room:", roomId);
+});
 
 const messageForm = document.getElementById("messageForm");
 const messageInput = document.getElementById("messageInput");
@@ -234,6 +257,10 @@ async function (event) {
                 }
             }
         );
+
+        if (!roomId) {
+            return;
+        }
 
         socket.emit("new_message", {
             roomId: roomId,
