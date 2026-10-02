@@ -15,26 +15,47 @@ const joinRoomButton = document.getElementById("joinRoomButton");
 
 let roomId = null;
 
-joinRoomButton.addEventListener("click", function () {
+joinRoomButton.addEventListener("click", async function () {
     const otherUserEmail = userEmailInput.value.trim();
 
     if (!otherUserEmail) {
         return;
     }
 
-    if (roomId) {
-        socket.emit("leave_room", roomId);
+    try {
+        await axios.get(
+            `${API_URL}/users/check`,
+            {
+                params: {
+                    email: otherUserEmail
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (roomId) {
+            socket.emit("leave_room", roomId);
+        }
+
+        const currentUserEmail = getCurrentUserEmailFromToken();
+
+        roomId = [currentUserEmail, otherUserEmail]
+            .sort()
+            .join("_");
+
+        socket.emit("join_room", roomId);
+
+        console.log("Joined room:", roomId);
+
+    } catch (error) {
+        if (error.response) {
+            console.log(error.response.data.message);
+        } else {
+            console.log("Unable to connect to server");
+        }
     }
-
-    const currentUserId = getCurrentUserIdFromToken();
-
-    roomId = [currentUserId, otherUserEmail]
-        .sort()
-        .join("_");
-
-    socket.emit("join_room", roomId);
-
-    console.log("Joined room:", roomId);
 });
 
 const messageForm = document.getElementById("messageForm");
@@ -189,33 +210,43 @@ Get logged-in user ID from JWT
 */
 
 function getCurrentUserIdFromToken() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        return null;
+    }
 
 
-const token = localStorage.getItem("token");
+    try {
+        const payload = token.split(".")[1];
+        const decodedPayload =
+            JSON.parse(atob(payload));
 
-if (!token) {
-    return null;
+        return decodedPayload.id;
+
+    } catch (error) {
+        console.log("Unable to read token");
+        return null;
+    }
 }
 
+function getCurrentUserEmailFromToken() {
+    const token = localStorage.getItem("token");
 
-try {
+    if (!token) {
+        return null;
+    }
 
-    const payload = token.split(".")[1];
+    try {
+        const payload = token.split(".")[1];
+        const decodedPayload = JSON.parse(atob(payload));
 
-    const decodedPayload =
-        JSON.parse(atob(payload));
+        return decodedPayload.email;
 
-
-    return decodedPayload.id;
-
-} catch (error) {
-
-    console.log("Unable to read token");
-
-    return null;
-}
-
-
+    } catch (error) {
+        console.log("Unable to read token");
+        return null;
+    }
 }
 
 /*
