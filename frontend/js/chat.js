@@ -4,7 +4,11 @@ if (!token) {
     window.location.href = "login.html";
 }
 
-const socket = io(API_URL);
+const socket = io(API_URL, {
+    auth: {
+        token: token
+    }
+});
 
 const messageForm = document.getElementById("messageForm");
 const messageInput = document.getElementById("messageInput");
