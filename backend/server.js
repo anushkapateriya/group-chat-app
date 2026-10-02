@@ -1,10 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const { Server } = require("socket.io");
+const setupSocket = require("./socket-io");
 
 const sequelize = require("./config/database");
 require("./models/associations");
@@ -13,14 +12,9 @@ const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 
 const app = express();
-
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin: "*"
-    }
-});
+const io = setupSocket(server);
 
 app.set("io", io);
 
@@ -34,60 +28,8 @@ app.use(
 app.use(cors());
 app.use(express.json());
 
-
 app.use("/", userRoutes);
 app.use("/", messageRoutes);
-
-
-/*
-    Socket.IO connection
-*/
-
-io.use((socket, next) => {
-
-    try {
-
-        const token = socket.handshake.auth.token;
-
-        if (!token) {
-            return next(new Error("Token required"));
-        }
-
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-
-        socket.user = decoded;
-
-        next();
-
-    } catch (error) {
-
-        next(new Error("Invalid or expired token"));
-
-    }
-
-});
-
-
-io.on("connection", (socket) => {
-
-    console.log(
-        "Authenticated user:",
-        socket.user.id
-    );
-
-    socket.on("disconnect", () => {
-
-        console.log(
-            "User disconnected:",
-            socket.id
-        );
-
-    });
-
-});
 
 
 const PORT = process.env.PORT || 3000;

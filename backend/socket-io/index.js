@@ -1,5 +1,6 @@
 const { Server } = require("socket.io");
 
+const personalChatHandler = require("./handlers/personalChat");
 const socketAuthMiddleware = require("./middleware");
 const chatHandler = require("./handlers/chat");
 
@@ -14,6 +15,7 @@ const setupSocket = (server) => {
 
     io.on("connection", (socket) => {
         chatHandler(socket);
+        personalChatHandler(socket);
     });
 
     return io;

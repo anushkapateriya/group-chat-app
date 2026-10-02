@@ -10,6 +10,10 @@ const socket = io(API_URL, {
     }
 });
 
+const roomId = "personal-room";
+
+socket.emit("join_room", roomId);
+
 const messageForm = document.getElementById("messageForm");
 const messageInput = document.getElementById("messageInput");
 const messagesContainer = document.getElementById("messagesContainer");
@@ -231,6 +235,11 @@ async function (event) {
             }
         );
 
+        socket.emit("new_message", {
+            roomId: roomId,
+            message: message
+        });
+
 
         messageInput.value = "";
 
@@ -289,6 +298,29 @@ socket.on("newMessage", function (data) {
     const messageTime = new Date(
         data.createdAt
     ).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const currentUserId = getCurrentUserIdFromToken();
+
+    const sender =
+        data.userId === currentUserId
+            ? "user"
+            : "other";
+
+    addMessage(
+        data.message,
+        sender,
+        messageTime
+    );
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+});
+
+socket.on("new_message", function (data) {
+    const messageTime = new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
     });
