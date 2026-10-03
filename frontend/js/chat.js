@@ -30,6 +30,7 @@ const joinGroupButton =
 
 let roomId = null;
 let groupId = null;
+let receiverId = null;
 
 /*
 Join personal chat room
@@ -122,12 +123,18 @@ joinRoomButton.addEventListener(
                 roomId
             );
 
-            loadMessages();
+            loadMessages(
+                null,
+                receiverId
+            );
 
             console.log(
                 "Joined room:",
                 roomId
             );
+
+            receiverId =
+                response.data.userId;
 
             console.log(
                 "Chatting with:",
@@ -208,6 +215,7 @@ createGroupButton.addEventListener(
             }
 
             groupId = group.id;
+            receiverId = null;
 
             socket.emit(
                 "join_group",
@@ -303,6 +311,7 @@ joinGroupButton.addEventListener(
             }
 
             groupId = group.id;
+            receiverId = null;
 
             socket.emit(
                 "join_group",
@@ -439,7 +448,10 @@ function addMessage(
 Load saved messages
 */
 
-async function loadMessages(selectedGroupId = null) {
+async function loadMessages(
+    selectedGroupId = null,
+    selectedReceiverId = null
+) {
     const savedToken =
         localStorage.getItem("token");
 
@@ -454,9 +466,20 @@ async function loadMessages(selectedGroupId = null) {
         let url =
             `${API_URL}/messages`;
 
+        /*
+        Load group messages
+        */
         if (selectedGroupId) {
             url +=
                 `?groupId=${selectedGroupId}`;
+        }
+
+        /*
+        Load personal messages
+        */
+        else if (selectedReceiverId) {
+            url +=
+                `?receiverId=${selectedReceiverId}`;
         }
 
         const response =
@@ -677,7 +700,8 @@ messageForm.addEventListener(
                 await axios.post(
                     `${API_URL}/messages`,
                     {
-                        message: message
+                        message: message,
+                        receiverId: receiverId
                     },
                     {
                         headers: {
@@ -762,7 +786,6 @@ setChatUser("", "");
 Load saved messages
 */
 
-loadMessages();
 
 /*
 Focus message input

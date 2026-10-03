@@ -1,12 +1,14 @@
 const Message = require("../models/message");
 const User = require("../models/user");
 const Group = require("../models/group");
+const { Op } = require("sequelize");
 
 const createMessage = async (req, res) => {
     try {
         const {
             message,
-            groupId
+            groupId,
+            receiverId
         } = req.body;
 
         if (!message || !message.trim()) {
@@ -16,7 +18,7 @@ const createMessage = async (req, res) => {
         }
 
         /*
-        Check group membership
+        Group message
         */
         if (groupId) {
             const group =
@@ -41,38 +43,60 @@ const createMessage = async (req, res) => {
             }
         }
 
+        /*
+        Personal message
+        */
+        if (!groupId) {
+            if (!receiverId) {
+                return res.status(400).json({
+                    message:
+                        "Receiver ID is required"
+                });
+            }
+
+            if (
+                Number(receiverId) ===
+                Number(req.user.id)
+            ) {
+                return res.status(400).json({
+                    message:
+                        "You cannot message yourself"
+                });
+            }
+
+            const receiver =
+                await User.findByPk(
+                    receiverId
+                );
+
+            if (!receiver) {
+                return res.status(404).json({
+                    message:
+                        "Receiver not found"
+                });
+            }
+        }
+
         const newMessage =
             await Message.create({
                 userId: req.user.id,
-                groupId: groupId || null,
-                message: message.trim()
+
+                receiverId:
+                    groupId
+                        ? null
+                        : receiverId,
+
+                groupId:
+                    groupId || null,
+
+                message:
+                    message.trim()
             });
-
-        const io =
-            req.app.get("io");
-
-        /*
-        Send global message only when
-        it is not a group message.
-        */
-        if (!groupId) {
-            io.emit(
-                "newMessage",
-                {
-                    id: newMessage.id,
-                    userId:
-                        newMessage.userId,
-                    message:
-                        newMessage.message,
-                    createdAt:
-                        newMessage.createdAt
-                }
-            );
-        }
 
         return res.status(201).json({
             message:
                 "Message sent successfully",
+
             data: newMessage
         });
 
@@ -88,8 +112,10 @@ const createMessage = async (req, res) => {
 
 const getMessages = async (req, res) => {
     try {
-        const { groupId } =
-            req.query;
+        const {
+            groupId,
+            receiverId
+        } = req.query;
 
         const where = {};
 
@@ -123,13 +149,61 @@ const getMessages = async (req, res) => {
 
             where.groupId = groupId;
 
+        } else if (receiverId) {
+
+            /*
+            Personal messages between
+            logged-in user and receiver
+            */
+
+            const receiver =
+                await User.findByPk(
+                    receiverId
+                );
+
+            if (!receiver) {
+                return res.status(404).json({
+                    message:
+                        "Receiver not found"
+                });
+            }
+
+            where.groupId = null;
+
+            where[Op.or] = [
+                {
+                    userId:
+                        req.user.id,
+
+                    receiverId:
+                        receiverId
+                },
+                {
+                    userId:
+                        receiverId,
+
+                    receiverId:
+                        req.user.id
+                }
+            ];
+
         } else {
 
             /*
-            Messages that are not
-            connected to a group
+            No group or receiver specified
             */
             where.groupId = null;
+
+            where[Op.or] = [
+                {
+                    userId:
+                        req.user.id
+                },
+                {
+                    receiverId:
+                        req.user.id
+                }
+            ];
         }
 
         const messages =
@@ -139,6 +213,15 @@ const getMessages = async (req, res) => {
                 include: [
                     {
                         model: User,
+                        as: "sender",
+                        attributes: [
+                            "id",
+                            "name"
+                        ]
+                    },
+                    {
+                        model: User,
+                        as: "receiver",
                         attributes: [
                             "id",
                             "name"
