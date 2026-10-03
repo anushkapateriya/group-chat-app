@@ -10,6 +10,7 @@ require("./models/associations");
 
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const groupRoutes = require("./routes/groupRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,7 @@ app.use(express.json());
 
 app.use("/", userRoutes);
 app.use("/", messageRoutes);
+app.use("/", groupRoutes);
 
 
 const PORT = process.env.PORT || 3000;

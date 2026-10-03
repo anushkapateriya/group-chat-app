@@ -10,199 +10,516 @@ const socket = io(API_URL, {
     }
 });
 
-const userEmailInput = document.getElementById("userEmail");
-const joinRoomButton = document.getElementById("joinRoomButton");
+const userEmailInput =
+    document.getElementById("userEmail");
+
+const joinRoomButton =
+    document.getElementById("joinRoomButton");
+
+const groupNameInput =
+    document.getElementById("groupName");
+
+const createGroupButton =
+    document.getElementById("createGroupButton");
+
+const groupIdInput =
+    document.getElementById("groupId");
+
+const joinGroupButton =
+    document.getElementById("joinGroupButton");
 
 let roomId = null;
+let groupId = null;
 
-joinRoomButton.addEventListener("click", async function () {
-    const otherUserEmail = userEmailInput.value.trim();
+/*
+Join personal chat room
+*/
 
-    if (!otherUserEmail) {
-        return;
-    }
+joinRoomButton.addEventListener(
+    "click",
+    async function () {
+        const otherUserEmail =
+            userEmailInput.value.trim().toLowerCase();
 
-    try {
-        await axios.get(
-            `${API_URL}/users/check`,
-            {
-                params: {
-                    email: otherUserEmail
-                },
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+        if (!otherUserEmail) {
+            console.log(
+                "Please enter an email"
+            );
+            return;
+        }
+
+        messagesContainer.innerHTML = "";
+
+        const currentUserEmail =
+            getCurrentUserEmailFromToken();
+
+        if (!currentUserEmail) {
+            console.log(
+                "Unable to get current user email"
+            );
+            return;
+        }
+
+        if (
+            currentUserEmail.toLowerCase() ===
+            otherUserEmail
+        ) {
+            console.log(
+                "You cannot chat with yourself"
+            );
+            return;
+        }
+
+        try {
+            const response =
+                await axios.get(
+                    `${API_URL}/users/check`,
+                    {
+                        params: {
+                            email: otherUserEmail
+                        },
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+            /*
+            Leave current group
+            */
+            if (groupId) {
+                socket.emit(
+                    "leave_group",
+                    groupId
+                );
+
+                groupId = null;
             }
-        );
 
-        if (roomId) {
-            socket.emit("leave_room", roomId);
-        }
+            /*
+            Leave current personal room
+            */
+            if (roomId) {
+                socket.emit(
+                    "leave_room",
+                    roomId
+                );
+            }
 
-        const currentUserEmail = getCurrentUserEmailFromToken();
+            const currentUserEmailLower =
+                currentUserEmail.toLowerCase();
 
-        roomId = [currentUserEmail, otherUserEmail]
-            .sort()
-            .join("_");
+            roomId = [
+                currentUserEmailLower,
+                otherUserEmail
+            ]
+                .sort()
+                .join("_");
 
-        socket.emit("join_room", roomId);
+            socket.emit(
+                "join_room",
+                roomId
+            );
 
-        console.log("Joined room:", roomId);
+            loadMessages();
 
-    } catch (error) {
-        if (error.response) {
-            console.log(error.response.data.message);
-        } else {
-            console.log("Unable to connect to server");
+            console.log(
+                "Joined room:",
+                roomId
+            );
+
+            console.log(
+                "Chatting with:",
+                response.data.email
+            );
+
+        } catch (error) {
+            if (error.response) {
+                console.log(
+                    error.response.data.message
+                );
+            } else {
+                console.log(
+                    "Unable to connect to server"
+                );
+            }
         }
     }
-});
+);
 
-const messageForm = document.getElementById("messageForm");
-const messageInput = document.getElementById("messageInput");
-const messagesContainer = document.getElementById("messagesContainer");
+/*
+Create group
+*/
 
-const chatUserName = document.getElementById("chatUserName");
-const chatUserStatus = document.getElementById("chatUserStatus");
-const chatUserInitial = document.getElementById("chatUserInitial");
+createGroupButton.addEventListener(
+    "click",
+    async function () {
+        const groupName =
+            groupNameInput.value.trim();
+
+        if (!groupName) {
+            console.log(
+                "Please enter a group name"
+            );
+            return;
+        }
+
+        messagesContainer.innerHTML = "";
+
+        try {
+            const response =
+                await axios.post(
+                    `${API_URL}/groups`,
+                    {
+                        name: groupName
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+            const group =
+                response.data.group;
+
+            /*
+            Leave current personal room
+            */
+            if (roomId) {
+                socket.emit(
+                    "leave_room",
+                    roomId
+                );
+
+                roomId = null;
+            }
+
+            /*
+            Leave previous group
+            */
+            if (groupId) {
+                socket.emit(
+                    "leave_group",
+                    groupId
+                );
+            }
+
+            groupId = group.id;
+
+            socket.emit(
+                "join_group",
+                groupId
+            );
+
+            loadMessages(groupId);
+
+            console.log(
+                "Group created:",
+                group.name
+            );
+
+            console.log(
+                "Group ID:",
+                group.id
+            );
+
+            groupNameInput.value = "";
+
+        } catch (error) {
+            if (error.response) {
+                console.log(
+                    error.response.data.message
+                );
+            } else {
+                console.log(
+                    "Unable to connect to server"
+                );
+            }
+        }
+    }
+);
+
+/*
+Join group
+*/
+
+joinGroupButton.addEventListener(
+    "click",
+    async function () {
+        const enteredGroupId =
+            groupIdInput.value.trim();
+
+        if (!enteredGroupId) {
+            console.log(
+                "Please enter a group ID"
+            );
+            return;
+        }
+
+        messagesContainer.innerHTML = "";
+
+        try {
+            const response =
+                await axios.post(
+                    `${API_URL}/groups/join`,
+                    {
+                        groupId:
+                            enteredGroupId
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+            const group =
+                response.data.group;
+
+            /*
+            Leave current personal room
+            */
+            if (roomId) {
+                socket.emit(
+                    "leave_room",
+                    roomId
+                );
+
+                roomId = null;
+            }
+
+            /*
+            Leave previous group
+            */
+            if (groupId) {
+                socket.emit(
+                    "leave_group",
+                    groupId
+                );
+            }
+
+            groupId = group.id;
+
+            socket.emit(
+                "join_group",
+                groupId
+            );
+
+            loadMessages(groupId);
+
+            console.log(
+                "Joined group:",
+                group.name
+            );
+
+            console.log(
+                "Group ID:",
+                group.id
+            );
+
+        } catch (error) {
+            if (error.response) {
+                console.log(
+                    error.response.data.message
+                );
+            } else {
+                console.log(
+                    "Unable to connect to server"
+                );
+            }
+        }
+    }
+);
+
+const messageForm =
+    document.getElementById("messageForm");
+
+const messageInput =
+    document.getElementById("messageInput");
+
+const messagesContainer =
+    document.getElementById(
+        "messagesContainer"
+    );
+
+const chatUserName =
+    document.getElementById(
+        "chatUserName"
+    );
+
+const chatUserStatus =
+    document.getElementById(
+        "chatUserStatus"
+    );
+
+const chatUserInitial =
+    document.getElementById(
+        "chatUserInitial"
+    );
 
 /*
 Set chat user information
 */
 
-function setChatUser(name, status) {
-chatUserName.textContent = name;
-chatUserStatus.textContent = status;
+function setChatUser(
+    name,
+    status
+) {
+    chatUserName.textContent = name;
+    chatUserStatus.textContent = status;
 
-
-if (name) {
-    chatUserInitial.textContent = name.charAt(0).toUpperCase();
-}
-
-
+    if (name) {
+        chatUserInitial.textContent =
+            name.charAt(0).toUpperCase();
+    }
 }
 
 /*
 Add message to chat window
 */
 
-function addMessage(text, sender, time) {
+function addMessage(
+    text,
+    sender,
+    time
+) {
+    const messageElement =
+        document.createElement("div");
 
+    messageElement.classList.add(
+        "message"
+    );
 
-const messageElement = document.createElement("div");
+    if (sender === "user") {
+        messageElement.classList.add(
+            "sent"
+        );
+    } else {
+        messageElement.classList.add(
+            "received"
+        );
+    }
 
-messageElement.classList.add("message");
+    const messageContent =
+        document.createElement("p");
 
-if (sender === "user") {
-    messageElement.classList.add("sent");
-} else {
-    messageElement.classList.add("received");
-}
+    messageContent.classList.add(
+        "message-content"
+    );
 
+    messageContent.textContent = text;
 
-const messageContent = document.createElement("p");
+    const messageTime =
+        document.createElement("span");
 
-messageContent.classList.add("message-content");
+    messageTime.classList.add(
+        "message-time"
+    );
 
-messageContent.textContent = text;
+    messageTime.textContent = time;
 
+    messageElement.appendChild(
+        messageContent
+    );
 
-const messageTime = document.createElement("span");
+    messageElement.appendChild(
+        messageTime
+    );
 
-messageTime.classList.add("message-time");
-
-messageTime.textContent = time;
-
-
-messageElement.appendChild(messageContent);
-messageElement.appendChild(messageTime);
-
-messagesContainer.appendChild(messageElement);
-
-
+    messagesContainer.appendChild(
+        messageElement
+    );
 }
 
 /*
-Load messages from backend
+Load saved messages
 */
 
-async function loadMessages() {
+async function loadMessages(selectedGroupId = null) {
+    const savedToken =
+        localStorage.getItem("token");
 
-
-const token = localStorage.getItem("token");
-
-if (!token) {
-    console.log("Login token not found");
-    return;
-}
-
-
-try {
-
-    const response = await axios.get(
-        `${API_URL}/messages`,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        }
-    );
-
-
-    const messages = response.data.data;
-
-    messagesContainer.innerHTML = "";
-
-
-    messages.forEach(function (item) {
-
-        const messageTime = new Date(
-            item.createdAt
-        ).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-
-
-        const currentUserId = getCurrentUserIdFromToken();
-
-        const sender =
-            item.userId === currentUserId
-                ? "user"
-                : "other";
-
-
-        addMessage(
-            item.message,
-            sender,
-            messageTime
-        );
-
-    });
-
-
-    messagesContainer.scrollTop =
-        messagesContainer.scrollHeight;
-
-
-} catch (error) {
-
-    if (error.response) {
-
+    if (!savedToken) {
         console.log(
-            "Load messages error:",
-            error.response.data.message
+            "Login token not found"
         );
-
-    } else {
-
-        console.log("Unable to connect to server");
-
+        return;
     }
 
-}
+    try {
+        let url =
+            `${API_URL}/messages`;
 
+        if (selectedGroupId) {
+            url +=
+                `?groupId=${selectedGroupId}`;
+        }
 
+        const response =
+            await axios.get(
+                url,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${savedToken}`
+                    }
+                }
+            );
+
+        const messages =
+            response.data.data;
+
+        messagesContainer.innerHTML = "";
+
+        messages.forEach(
+            function (item) {
+                const messageTime =
+                    new Date(
+                        item.createdAt
+                    ).toLocaleTimeString(
+                        [],
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        }
+                    );
+
+                const currentUserId =
+                    getCurrentUserIdFromToken();
+
+                const sender =
+                    item.userId ===
+                    currentUserId
+                        ? "user"
+                        : "other";
+
+                addMessage(
+                    item.message,
+                    sender,
+                    messageTime
+                );
+            }
+        );
+
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+
+    } catch (error) {
+        if (error.response) {
+            console.log(
+                "Load messages error:",
+                error.response.data.message
+            );
+        } else {
+            console.log(
+                "Unable to connect to server"
+            );
+        }
+    }
 }
 
 /*
@@ -210,192 +527,370 @@ Get logged-in user ID from JWT
 */
 
 function getCurrentUserIdFromToken() {
-    const token = localStorage.getItem("token");
+    const savedToken =
+        localStorage.getItem("token");
 
-    if (!token) {
+    if (!savedToken) {
         return null;
     }
 
-
     try {
-        const payload = token.split(".")[1];
+        const payload =
+            savedToken.split(".")[1];
+
         const decodedPayload =
-            JSON.parse(atob(payload));
+            JSON.parse(
+                atob(
+                    payload
+                        .replace(/-/g, "+")
+                        .replace(/_/g, "/")
+                )
+            );
 
         return decodedPayload.id;
 
     } catch (error) {
-        console.log("Unable to read token");
+        console.log(
+            "Unable to read token"
+        );
+
         return null;
     }
 }
 
-function getCurrentUserEmailFromToken() {
-    const token = localStorage.getItem("token");
+/*
+Get logged-in user email from JWT
+*/
 
-    if (!token) {
+function getCurrentUserEmailFromToken() {
+    const savedToken =
+        localStorage.getItem("token");
+
+    if (!savedToken) {
         return null;
     }
 
     try {
-        const payload = token.split(".")[1];
-        const decodedPayload = JSON.parse(atob(payload));
+        const payload =
+            savedToken.split(".")[1];
+
+        const decodedPayload =
+            JSON.parse(
+                atob(
+                    payload
+                        .replace(/-/g, "+")
+                        .replace(/_/g, "/")
+                )
+            );
 
         return decodedPayload.email;
 
     } catch (error) {
-        console.log("Unable to read token");
+        console.log(
+            "Unable to read token"
+        );
+
         return null;
     }
 }
 
 /*
-Send message to backend
+Send message
 */
 
 messageForm.addEventListener(
-"submit",
-async function (event) {
+    "submit",
+    async function (event) {
+        event.preventDefault();
 
+        const message =
+            messageInput.value.trim();
 
-    event.preventDefault();
-
-    const message = messageInput.value.trim();
-
-    if (!message) {
-        return;
-    }
-
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        console.log("Login token not found");
-        return;
-    }
-
-
-    try {
-
-        const response = await axios.post(
-            `${API_URL}/messages`,
-            {
-                message: message
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        if (!roomId) {
+        if (!message) {
             return;
         }
 
-        socket.emit("new_message", {
-            roomId: roomId,
-            message: message
-        });
+        const savedToken =
+            localStorage.getItem("token");
 
-
-        messageInput.value = "";
-
-        messageInput.focus();      
-
-
-        messagesContainer.scrollTop =
-            messagesContainer.scrollHeight;
-
-
-    } catch (error) {
-
-        if (error.response) {
-
+        if (!savedToken) {
             console.log(
-                "Message error:",
-                error.response.data.message
+                "Login token not found"
             );
-
-        } else {
-
-            console.log(
-                "Unable to connect to server"
-            );
-
+            return;
         }
 
+        /*
+        Group chat
+        */
+
+        if (groupId) {
+            try {
+                await axios.post(
+                    `${API_URL}/messages`,
+                    {
+                        message: message,
+                        groupId: groupId
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${savedToken}`
+                        }
+                    }
+                );
+
+                socket.emit(
+                    "group_message",
+                    {
+                        groupId: groupId,
+                        message: message
+                    }
+                );
+
+                messageInput.value = "";
+
+                messageInput.focus();
+
+            } catch (error) {
+                if (error.response) {
+                    console.log(
+                        "Message error:",
+                        error.response.data.message
+                    );
+                } else {
+                    console.log(
+                        "Unable to connect to server"
+                    );
+                }
+            }
+
+            return;
+        }
+
+        /*
+        Personal chat
+        */
+
+        if (roomId) {
+            try {
+                await axios.post(
+                    `${API_URL}/messages`,
+                    {
+                        message: message
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${savedToken}`
+                        }
+                    }
+                );
+
+                socket.emit(
+                    "new_message",
+                    {
+                        roomId: roomId,
+                        message: message
+                    }
+                );
+
+                messageInput.value = "";
+
+                messageInput.focus();
+
+            } catch (error) {
+                if (error.response) {
+                    console.log(
+                        "Message error:",
+                        error.response.data.message
+                    );
+                } else {
+                    console.log(
+                        "Unable to connect to server"
+                    );
+                }
+            }
+
+            return;
+        }
+
+        /*
+        Existing group chat
+        */
+
+        try {
+            await axios.post(
+                `${API_URL}/messages`,
+                {
+                    message: message
+                },
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${savedToken}`
+                    }
+                }
+            );
+
+            messageInput.value = "";
+
+            messageInput.focus();
+
+        } catch (error) {
+            if (error.response) {
+                console.log(
+                    "Message error:",
+                    error.response.data.message
+                );
+            } else {
+                console.log(
+                    "Unable to connect to server"
+                );
+            }
+        }
     }
-
-}
-
-
 );
 
 /*
-Chat user information will be
-connected to backend later.
+Initial chat information
 */
 
 setChatUser("", "");
 
 /*
-Load saved messages when page opens.
+Load saved messages
 */
 
 loadMessages();
 
 /*
-Focus message input.
+Focus message input
 */
 
 messageInput.focus();
 
-socket.on("newMessage", function (data) {
+/*
+Existing group-chat event
 
-    const messageTime = new Date(
-        data.createdAt
-    ).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
+Only handle this when we are NOT
+inside a personal room or group.
+*/
 
-    const currentUserId = getCurrentUserIdFromToken();
+socket.on(
+    "newMessage",
+    function (data) {
+        if (roomId || groupId) {
+            return;
+        }
 
-    const sender =
-        data.userId === currentUserId
-            ? "user"
-            : "other";
+        const messageTime =
+            new Date(
+                data.createdAt
+            ).toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
 
-    addMessage(
-        data.message,
-        sender,
-        messageTime
-    );
+        const currentUserId =
+            getCurrentUserIdFromToken();
 
-    messagesContainer.scrollTop =
-        messagesContainer.scrollHeight;
-});
+        const sender =
+            data.userId ===
+            currentUserId
+                ? "user"
+                : "other";
 
-socket.on("new_message", function (data) {
-    const messageTime = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
+        addMessage(
+            data.message,
+            sender,
+            messageTime
+        );
 
-    const currentUserId = getCurrentUserIdFromToken();
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+    }
+);
 
-    const sender =
-        data.userId === currentUserId
-            ? "user"
-            : "other";
+/*
+Personal-chat event
+*/
 
-    addMessage(
-        data.message,
-        sender,
-        messageTime
-    );
+socket.on(
+    "new_message",
+    function (data) {
+        if (!roomId) {
+            return;
+        }
 
-    messagesContainer.scrollTop =
-        messagesContainer.scrollHeight;
-});
+        const messageTime =
+            new Date().toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        const currentUserId =
+            getCurrentUserIdFromToken();
+
+        const sender =
+            data.userId ===
+            currentUserId
+                ? "user"
+                : "other";
+
+        addMessage(
+            data.message,
+            sender,
+            messageTime
+        );
+
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+    }
+);
+
+/*
+Group-chat event
+*/
+
+socket.on(
+    "group_message",
+    function (data) {
+        if (!groupId) {
+            return;
+        }
+
+        const messageTime =
+            new Date().toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        const currentUserId =
+            getCurrentUserIdFromToken();
+
+        const sender =
+            data.userId ===
+            currentUserId
+                ? "user"
+                : "other";
+
+        addMessage(
+            data.message,
+            sender,
+            messageTime
+        );
+
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+    }
+);
