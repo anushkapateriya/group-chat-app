@@ -1,6 +1,7 @@
 const User = require("./user");
 const Message = require("./message");
 const Group = require("./group");
+const ArchivedChat = require("./archivedChat");
 
 /*
 User → Messages sent by user
@@ -53,5 +54,45 @@ Group.hasMany(Message, {
 });
 
 Message.belongsTo(Group, {
+    foreignKey: "groupId"
+});
+
+/*
+User → Archived Chats
+*/
+
+User.hasMany(ArchivedChat, {
+    foreignKey: "userId",
+    as: "archivedSentMessages"
+});
+
+ArchivedChat.belongsTo(User, {
+    foreignKey: "userId",
+    as: "sender"
+});
+
+/*
+Archived Chat → Receiver
+*/
+
+User.hasMany(ArchivedChat, {
+    foreignKey: "receiverId",
+    as: "archivedReceivedMessages"
+});
+
+ArchivedChat.belongsTo(User, {
+    foreignKey: "receiverId",
+    as: "receiver"
+});
+
+/*
+Group → Archived Chats
+*/
+
+Group.hasMany(ArchivedChat, {
+    foreignKey: "groupId"
+});
+
+ArchivedChat.belongsTo(Group, {
     foreignKey: "groupId"
 });

@@ -1,3 +1,8 @@
+const { CronJob } = require("cron");
+
+const archiveMessages =
+    require("./jobs/archiveMessages");
+
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -45,13 +50,27 @@ sequelize
 
         console.log("Database connected successfully");
 
-        return sequelize.sync();
+        return sequelize.sync({alter:true});
 
     })
     .then(() => {
 
         console.log("Database tables created successfully");
+        
+        const archiveJob =
+            new CronJob(
+                "0 0 * * *",
+                async () => {
+                    await archiveMessages();
+                }
+            );
 
+        archiveJob.start();
+
+        console.log(
+            "Message archive cron job started"
+        );
+        
         server.listen(PORT, () => {
 
             console.log(`Server is running on port ${PORT}`);
