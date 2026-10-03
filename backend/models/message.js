@@ -21,7 +21,28 @@ const Message = sequelize.define("Message", {
 
     message: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: true
+    },
+
+    messageType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "text"
+    },
+
+    mediaKey: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+
+    fileName: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
+    mimeType: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 });
 

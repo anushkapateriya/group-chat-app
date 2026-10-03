@@ -3,6 +3,17 @@ const User = require("../models/user");
 const Group = require("../models/group");
 const { Op } = require("sequelize");
 
+const {
+    GetObjectCommand
+} = require("@aws-sdk/client-s3");
+
+const {
+    getSignedUrl
+} = require("@aws-sdk/s3-request-presigner");
+
+const s3 =
+    require("../config/aws");
+
 const createMessage = async (req, res) => {
     try {
         const {
@@ -234,8 +245,46 @@ const getMessages = async (req, res) => {
                 ]
             });
 
+        const messagesWithMediaUrl =
+            await Promise.all(
+                messages.map(
+                    async (item) => {
+                        const messageData =
+                            item.toJSON();
+
+                        if (
+                            messageData.messageType ===
+                                "media" &&
+                            messageData.mediaKey
+                        ) {
+                            const getObjectCommand =
+                                new GetObjectCommand({
+                                    Bucket:
+                                        process.env
+                                            .AWS_S3_BUCKET_NAME,
+
+                                    Key:
+                                        messageData.mediaKey
+                                });
+
+                            messageData.mediaUrl =
+                                await getSignedUrl(
+                                    s3,
+                                    getObjectCommand,
+                                    {
+                                        expiresIn: 3600
+                                    }
+                                );
+                        }
+
+                        return messageData;
+                    }
+                )
+            );
+
         return res.status(200).json({
-            data: messages
+            data:
+                messagesWithMediaUrl
         });
 
     } catch (error) {

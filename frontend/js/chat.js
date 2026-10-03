@@ -519,12 +519,43 @@ async function loadMessages(
                     currentUserId
                         ? "user"
                         : "other";
+                
+                if (
+                    item.messageType ===
+                    "media"
+                ) {
+                    addMediaMessage({
+                        userId:
+                            item.userId,
+
+                        receiverId:
+                            item.receiverId,
+
+                        groupId:
+                            item.groupId,
+
+                        mediaUrl:
+                            item.mediaUrl,
+
+                        fileName:
+                            item.fileName,
+
+                        mimeType:
+                            item.mimeType,
+
+                        createdAt:
+                            item.createdAt
+                    });
+
+                    return;
+                }
 
                 addMessage(
                     item.message,
                     sender,
                     messageTime
-                );
+                );        
+
             }
         );
 
@@ -917,3 +948,238 @@ socket.on(
             messagesContainer.scrollHeight;
     }
 );
+
+socket.on(
+    "media_message",
+    function (data) {
+        if (
+            data.groupId &&
+            Number(data.groupId) !==
+                Number(groupId)
+        ) {
+            return;
+        }
+
+        if (
+            data.receiverId &&
+            !roomId
+        ) {
+            return;
+        }
+
+        addMediaMessage(data);
+    }
+);
+
+const mediaInput =
+    document.getElementById("mediaInput");
+
+mediaInput.addEventListener(
+    "change",
+    async () => {
+        try {
+            const file =
+                mediaInput.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (!roomId && !groupId) {
+                mediaInput.value = "";
+
+                console.log(
+                    "Please select a chat first"
+                );
+
+                return;
+            }
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                file
+            );
+
+            if (groupId) {
+                formData.append(
+                    "groupId",
+                    groupId
+                );
+            } else if (receiverId) {
+                formData.append(
+                    "receiverId",
+                    receiverId
+                );
+            }
+
+            const response =
+                await axios.post(
+                    `${API_URL}/media/upload`,
+                    formData,
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+            console.log(
+                "Media uploaded:",
+                response.data
+            );
+
+            mediaInput.value = "";
+
+        } catch (error) {
+            console.error(
+                "Media upload error:",
+                error
+            );
+
+            mediaInput.value = "";
+        }
+    }
+);
+
+const addMediaMessage = (
+    data
+) => {
+    const messageElement =
+        document.createElement("div");
+
+    messageElement.classList.add(
+        "message"
+    );
+
+    const currentUserId =
+        getCurrentUserIdFromToken();
+
+    if (
+        Number(data.userId) ===
+        Number(currentUserId)
+    ) {
+        messageElement.classList.add(
+            "sent"
+        );
+    } else {
+        messageElement.classList.add(
+            "received"
+        );
+    }
+
+    if (
+        data.mimeType &&
+        data.mimeType.startsWith(
+            "image/"
+        )
+    ) {
+        const image =
+            document.createElement("img");
+
+        image.src =
+            data.mediaUrl;
+
+        image.alt =
+            data.fileName || "Image";
+
+        image.style.maxWidth =
+            "300px";
+
+        image.style.borderRadius =
+            "8px";
+
+        messageElement.appendChild(
+            image
+        );
+
+    } else if (
+        data.mimeType &&
+        data.mimeType.startsWith(
+            "video/"
+        )
+    ) {
+        const video =
+            document.createElement("video");
+
+        video.controls = true;
+
+        video.style.maxWidth =
+            "300px";
+
+        video.style.borderRadius =
+            "8px";
+
+        const source =
+            document.createElement("source");
+
+        source.src =
+            data.mediaUrl;
+
+        source.type =
+            data.mimeType;
+
+        video.appendChild(
+            source
+        );
+
+        messageElement.appendChild(
+            video
+        );
+
+    } else {
+        const link =
+            document.createElement("a");
+
+        link.href =
+            data.mediaUrl;
+
+        link.target =
+            "_blank";
+
+        link.rel =
+            "noopener noreferrer";
+
+        link.textContent =
+            data.fileName ||
+            "Download file";
+
+        messageElement.appendChild(
+            link
+        );
+    }
+
+    if (data.createdAt) {
+        const messageTime =
+            document.createElement("span");
+
+        messageTime.classList.add(
+            "message-time"
+        );
+
+        messageTime.textContent =
+            new Date(
+                data.createdAt
+            ).toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        messageElement.appendChild(
+            messageTime
+        );
+    }
+
+    messagesContainer.appendChild(
+        messageElement
+    );
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+};
