@@ -33,6 +33,12 @@ let groupId = null;
 let receiverId = null;
 
 /*
+AI typing suggestion timer
+*/
+
+let typingSuggestionTimer = null;
+
+/*
 Join personal chat room
 */
 
@@ -89,6 +95,7 @@ joinRoomButton.addEventListener(
             /*
             Leave current group
             */
+
             if (groupId) {
                 socket.emit(
                     "leave_group",
@@ -101,6 +108,7 @@ joinRoomButton.addEventListener(
             /*
             Leave current personal room
             */
+
             if (roomId) {
                 socket.emit(
                     "leave_room",
@@ -123,6 +131,13 @@ joinRoomButton.addEventListener(
                 roomId
             );
 
+            /*
+            Set receiver before loading messages
+            */
+
+            receiverId =
+                response.data.userId;
+
             loadMessages(
                 null,
                 receiverId
@@ -132,9 +147,6 @@ joinRoomButton.addEventListener(
                 "Joined room:",
                 roomId
             );
-
-            receiverId =
-                response.data.userId;
 
             console.log(
                 "Chatting with:",
@@ -195,6 +207,7 @@ createGroupButton.addEventListener(
             /*
             Leave current personal room
             */
+
             if (roomId) {
                 socket.emit(
                     "leave_room",
@@ -207,6 +220,7 @@ createGroupButton.addEventListener(
             /*
             Leave previous group
             */
+
             if (groupId) {
                 socket.emit(
                     "leave_group",
@@ -291,6 +305,7 @@ joinGroupButton.addEventListener(
             /*
             Leave current personal room
             */
+
             if (roomId) {
                 socket.emit(
                     "leave_room",
@@ -303,6 +318,7 @@ joinGroupButton.addEventListener(
             /*
             Leave previous group
             */
+
             if (groupId) {
                 socket.emit(
                     "leave_group",
@@ -368,6 +384,20 @@ const chatUserStatus =
 const chatUserInitial =
     document.getElementById(
         "chatUserInitial"
+    );
+
+/*
+AI suggestion containers
+*/
+
+const typingSuggestions =
+    document.getElementById(
+        "typingSuggestions"
+    );
+
+const smartReplies =
+    document.getElementById(
+        "smartReplies"
     );
 
 /*
@@ -469,6 +499,7 @@ async function loadMessages(
         /*
         Load group messages
         */
+
         if (selectedGroupId) {
             url +=
                 `?groupId=${selectedGroupId}`;
@@ -477,6 +508,7 @@ async function loadMessages(
         /*
         Load personal messages
         */
+
         else if (selectedReceiverId) {
             url +=
                 `?receiverId=${selectedReceiverId}`;
@@ -519,7 +551,7 @@ async function loadMessages(
                     currentUserId
                         ? "user"
                         : "other";
-                
+
                 if (
                     item.messageType ===
                     "media"
@@ -554,8 +586,7 @@ async function loadMessages(
                     item.message,
                     sender,
                     messageTime
-                );        
-
+                );
             }
         );
 
@@ -649,6 +680,116 @@ function getCurrentUserEmailFromToken() {
 }
 
 /*
+Get AI suggestions
+*/
+
+async function getAiSuggestions(
+    type,
+    message
+) {
+    try {
+        const response =
+            await axios.post(
+                `${API_URL}/ai/suggestions`,
+                {
+                    type: type,
+                    message: message
+                },
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+        return response.data.suggestions;
+
+    } catch (error) {
+        console.error(
+            "AI suggestion error:",
+            error
+        );
+
+        return [];
+    }
+}
+
+/*
+Predictive typing
+*/
+
+messageInput.addEventListener(
+    "input",
+    function () {
+        clearTimeout(
+            typingSuggestionTimer
+        );
+
+        const message =
+            messageInput.value.trim();
+
+        typingSuggestions.innerHTML =
+            "";
+
+        if (
+            message.length < 3
+        ) {
+            return;
+        }
+
+        typingSuggestionTimer =
+            setTimeout(
+                async function () {
+                    const suggestions =
+                        await getAiSuggestions(
+                            "typing",
+                            message
+                        );
+
+                    typingSuggestions.innerHTML =
+                        "";
+
+                    suggestions.forEach(
+                        function (
+                            suggestion
+                        ) {
+                            const button =
+                                document.createElement(
+                                    "button"
+                                );
+
+                            button.type =
+                                "button";
+
+                            button.textContent =
+                                suggestion;
+
+                            button.addEventListener(
+                                "click",
+                                function () {
+                                    messageInput.value =
+                                        `${message} ${suggestion}`;
+
+                                    messageInput.focus();
+
+                                    typingSuggestions.innerHTML =
+                                        "";
+                                }
+                            );
+
+                            typingSuggestions.appendChild(
+                                button
+                            );
+                        }
+                    );
+                },
+                700
+            );
+    }
+);
+
+/*
 Send message
 */
 
@@ -704,6 +845,12 @@ messageForm.addEventListener(
 
                 messageInput.value = "";
 
+                typingSuggestions.innerHTML =
+                    "";
+
+                smartReplies.innerHTML =
+                    "";
+
                 messageInput.focus();
 
             } catch (error) {
@@ -752,6 +899,12 @@ messageForm.addEventListener(
 
                 messageInput.value = "";
 
+                typingSuggestions.innerHTML =
+                    "";
+
+                smartReplies.innerHTML =
+                    "";
+
                 messageInput.focus();
 
             } catch (error) {
@@ -790,6 +943,12 @@ messageForm.addEventListener(
 
             messageInput.value = "";
 
+            typingSuggestions.innerHTML =
+                "";
+
+            smartReplies.innerHTML =
+                "";
+
             messageInput.focus();
 
         } catch (error) {
@@ -812,11 +971,6 @@ Initial chat information
 */
 
 setChatUser("", "");
-
-/*
-Load saved messages
-*/
-
 
 /*
 Focus message input
@@ -904,6 +1058,62 @@ socket.on(
             messageTime
         );
 
+        /*
+        Generate smart replies
+        for incoming message
+        */
+
+        if (
+            Number(data.userId) !==
+            Number(currentUserId)
+        ) {
+            getAiSuggestions(
+                "reply",
+                data.message
+            ).then(
+                function (
+                    suggestions
+                ) {
+                    smartReplies.innerHTML =
+                        "";
+
+                    suggestions.forEach(
+                        function (
+                            suggestion
+                        ) {
+                            const button =
+                                document.createElement(
+                                    "button"
+                                );
+
+                            button.type =
+                                "button";
+
+                            button.textContent =
+                                suggestion;
+
+                            button.addEventListener(
+                                "click",
+                                function () {
+                                    messageInput.value =
+                                        suggestion;
+
+                                    messageInput.focus();
+
+                                    smartReplies.innerHTML =
+                                        "";
+                                }
+                            );
+
+                            smartReplies.appendChild(
+                                button
+                            );
+                        }
+                    );
+                }
+            );
+        }
+
         messagesContainer.scrollTop =
             messagesContainer.scrollHeight;
     }
@@ -944,10 +1154,70 @@ socket.on(
             messageTime
         );
 
+        /*
+        Generate smart replies
+        for incoming group message
+        */
+
+        if (
+            Number(data.userId) !==
+            Number(currentUserId)
+        ) {
+            getAiSuggestions(
+                "reply",
+                data.message
+            ).then(
+                function (
+                    suggestions
+                ) {
+                    smartReplies.innerHTML =
+                        "";
+
+                    suggestions.forEach(
+                        function (
+                            suggestion
+                        ) {
+                            const button =
+                                document.createElement(
+                                    "button"
+                                );
+
+                            button.type =
+                                "button";
+
+                            button.textContent =
+                                suggestion;
+
+                            button.addEventListener(
+                                "click",
+                                function () {
+                                    messageInput.value =
+                                        suggestion;
+
+                                    messageInput.focus();
+
+                                    smartReplies.innerHTML =
+                                        "";
+                                }
+                            );
+
+                            smartReplies.appendChild(
+                                button
+                            );
+                        }
+                    );
+                }
+            );
+        }
+
         messagesContainer.scrollTop =
             messagesContainer.scrollHeight;
     }
 );
+
+/*
+Media message event
+*/
 
 socket.on(
     "media_message",
@@ -972,7 +1242,9 @@ socket.on(
 );
 
 const mediaInput =
-    document.getElementById("mediaInput");
+    document.getElementById(
+        "mediaInput"
+    );
 
 mediaInput.addEventListener(
     "change",
@@ -1044,6 +1316,10 @@ mediaInput.addEventListener(
         }
     }
 );
+
+/*
+Add media message
+*/
 
 const addMediaMessage = (
     data

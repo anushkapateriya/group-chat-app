@@ -16,7 +16,8 @@ require("./models/associations");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const groupRoutes = require("./routes/groupRoutes");
-const mediaRoutes =require("./routes/mediaRoutes");
+const mediaRoutes = require("./routes/mediaRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -39,7 +40,7 @@ app.use("/", userRoutes);
 app.use("/", messageRoutes);
 app.use("/", groupRoutes);
 app.use("/", mediaRoutes);
-
+app.use("/", aiRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -70,7 +71,7 @@ sequelize
         console.log(
             "Message archive cron job started"
         );
-        
+
         server.listen(PORT, () => {
 
             console.log(`Server is running on port ${PORT}`);
