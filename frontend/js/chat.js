@@ -22,8 +22,8 @@ const groupNameInput =
 const createGroupButton =
     document.getElementById("createGroupButton");
 
-const groupIdInput =
-    document.getElementById("groupId");
+const groupNameSearchInput =
+    document.getElementById("groupNameSearch");
 
 const joinGroupButton =
     document.getElementById("joinGroupButton");
@@ -137,6 +137,11 @@ joinRoomButton.addEventListener(
 
             receiverId =
                 response.data.userId;
+           
+            setChatUser(
+                response.data.name,
+                "Personal chat"
+            );
 
             loadMessages(
                 null,
@@ -238,6 +243,11 @@ createGroupButton.addEventListener(
 
             loadMessages(groupId);
 
+            setChatUser(
+                group.name,
+                "Group chat"
+            );
+
             console.log(
                 "Group created:",
                 group.name
@@ -271,25 +281,24 @@ Join group
 joinGroupButton.addEventListener(
     "click",
     async function () {
-        const enteredGroupId =
-            groupIdInput.value.trim();
 
-        if (!enteredGroupId) {
-            console.log(
-                "Please enter a group ID"
-            );
+        const groupName =
+            groupNameSearchInput.value.trim();
+
+        if (!groupName) {
+            console.log("Please enter a group name");
             return;
         }
 
         messagesContainer.innerHTML = "";
 
         try {
+
             const response =
                 await axios.post(
                     `${API_URL}/groups/join`,
                     {
-                        groupId:
-                            enteredGroupId
+                        groupName: groupName
                     },
                     {
                         headers: {
@@ -302,10 +311,6 @@ joinGroupButton.addEventListener(
             const group =
                 response.data.group;
 
-            /*
-            Leave current personal room
-            */
-
             if (roomId) {
                 socket.emit(
                     "leave_room",
@@ -314,10 +319,6 @@ joinGroupButton.addEventListener(
 
                 roomId = null;
             }
-
-            /*
-            Leave previous group
-            */
 
             if (groupId) {
                 socket.emit(
@@ -336,6 +337,11 @@ joinGroupButton.addEventListener(
 
             loadMessages(groupId);
 
+            setChatUser(
+                group.name,
+                "Group chat"
+            );
+
             console.log(
                 "Joined group:",
                 group.name
@@ -346,12 +352,18 @@ joinGroupButton.addEventListener(
                 group.id
             );
 
+            groupNameSearchInput.value = "";
+
         } catch (error) {
+
             if (error.response) {
+
                 console.log(
                     error.response.data.message
                 );
+
             } else {
+
                 console.log(
                     "Unable to connect to server"
                 );

@@ -11,11 +11,27 @@ const createGroup = async (req, res) => {
             });
         }
 
+        const groupName = name.trim();
+
+        const existingGroup =
+            await Group.findOne({
+                where: {
+                    name: groupName
+                }
+            });
+
+        if (existingGroup) {
+            return res.status(400).json({
+                message: "Group name already exists"
+            });
+        }
+
         const group = await Group.create({
-            name: name.trim()
+            name: groupName
         });
 
-        const user = await User.findByPk(req.user.id);
+        const user =
+            await User.findByPk(req.user.id);
 
         await group.addUser(user);
 
@@ -26,6 +42,7 @@ const createGroup = async (req, res) => {
                 name: group.name
             }
         });
+
     } catch (error) {
         console.error(error);
 
@@ -35,17 +52,23 @@ const createGroup = async (req, res) => {
     }
 };
 
+
 const joinGroup = async (req, res) => {
     try {
-        const { groupId } = req.body;
+        const { groupName } = req.body;
 
-        if (!groupId) {
+        if (!groupName || !groupName.trim()) {
             return res.status(400).json({
-                message: "Group ID is required"
+                message: "Group name is required"
             });
         }
 
-        const group = await Group.findByPk(groupId);
+        const group =
+            await Group.findOne({
+                where: {
+                    name: groupName.trim()
+                }
+            });
 
         if (!group) {
             return res.status(404).json({
@@ -53,7 +76,8 @@ const joinGroup = async (req, res) => {
             });
         }
 
-        const user = await User.findByPk(req.user.id);
+        const user =
+            await User.findByPk(req.user.id);
 
         await group.addUser(user);
 
@@ -64,6 +88,7 @@ const joinGroup = async (req, res) => {
                 name: group.name
             }
         });
+
     } catch (error) {
         console.error(error);
 
@@ -72,6 +97,7 @@ const joinGroup = async (req, res) => {
         });
     }
 };
+
 
 module.exports = {
     createGroup,

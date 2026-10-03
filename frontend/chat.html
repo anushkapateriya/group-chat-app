@@ -1,24 +1,23 @@
+
 <!DOCTYPE html>
 
 <html lang="en">
 
 <head>
 
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+    <title>Chat</title>
 
-<title>Chat</title>
-
-<link
-    rel="stylesheet"
-    href="css/chat.css"
->
-
+    <link
+        rel="stylesheet"
+        href="css/chat.css"
+    >
 
 </head>
 
@@ -26,123 +25,228 @@
 
 <div class="chat-container">
 
+    <!-- SIDEBAR -->
 
-<header class="chat-header">
+    <aside class="chat-sidebar">
 
-    <div class="chat-user">
+        <div class="sidebar-brand">
 
-        <div class="user-avatar">
-            <span id="chatUserInitial"></span>
-        </div>
+            <div class="brand-icon">
+                💬
+            </div>
 
-        <div class="user-info">
-
-            <h2 id="chatUserName"></h2>
-
-            <p id="chatUserStatus"></p>
-
-        </div>
-
-        <div class="personal-chat">
-
-            <input
-                type="email"
-                id="userEmail"
-                placeholder="Enter user email"
-            >
-
-            <button
-                type="button"
-                id="joinRoomButton"
-            >
-                Join Chat
-            </button>
+            <div>
+                <h2>ChatSpace</h2>
+                <p>Messages</p>
+            </div>
 
         </div>
-        
-        <div class="group-chat">
-            <input
-                type="text"
-                id="groupName"
-                placeholder="Enter group name"
-            >
 
-            <button
-                type="button"
-                id="createGroupButton"
-            >
-                Create Group
-            </button>
 
-            <input
-                type="number"
-                id="groupId"
-                placeholder="Enter group ID"
-            >
+        <div class="sidebar-section">
 
-            <button
-                type="button"
-                id="joinGroupButton"
-            >
-                Join Group
-            </button>
+            <p class="sidebar-title">
+                PERSONAL CHAT
+            </p>
+
+            <div class="personal-chat">
+
+                <input
+                    type="email"
+                    id="userEmail"
+                    placeholder="Enter user email"
+                >
+
+                <button
+                    type="button"
+                    id="joinRoomButton"
+                >
+                    Start Chat
+                </button>
+
+            </div>
+
         </div>
 
 
-    </div>
+        <div class="sidebar-section">
 
-</header>
+            <p class="sidebar-title">
+                GROUP CHAT
+            </p>
+
+            <div class="group-chat">
+
+                <input
+                    type="text"
+                    id="groupName"
+                    placeholder="Group name"
+                >
+
+                <button
+                    type="button"
+                    id="createGroupButton"
+                >
+                    Create Group
+                </button>
 
 
-<main
-    class="messages-container"
-    id="messagesContainer"
->
+                <input
+                    type="text"
+                    id="groupNameSearch"
+                    placeholder="Enter group name"
+                >
 
-</main>
+                <button
+                    type="button"
+                    id="joinGroupButton"
+                >
+                    Search & Join
+                </button>
+
+            </div>
+
+        </div>
+
+    </aside>
 
 
-<footer class="message-input-container">
+    <!-- MAIN CHAT -->
 
-    <input
-        type="file"
-        id="mediaInput"
-    >
+    <section class="chat-main">
 
-    <div
-        id="typingSuggestions"
-        class="ai-suggestions"
-    >
-    </div>
 
-    <div
-        id="smartReplies"
-        class="ai-suggestions"
-    >
-    </div>
+        <!-- CHAT HEADER -->
 
-    <form id="messageForm">
+        <header class="chat-header">
 
-        <input
-            type="text"
-            id="messageInput"
-            placeholder="Type a message..."
-            autocomplete="off"
+            <div class="chat-user">
+
+                <div class="user-avatar">
+
+                    <span id="chatUserInitial"></span>
+
+                </div>
+
+
+                <div class="user-info">
+
+                    <h2 id="chatUserName">
+                        Select a conversation
+                    </h2>
+
+                    <div class="status-row">
+
+                        <span class="status-dot"></span>
+
+                        <p id="chatUserStatus">
+                            Ready to chat
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="chat-header-actions">
+
+                <button
+                    type="button"
+                    class="header-button"
+                    title="Search"
+                >
+                    🔍
+                </button>
+
+                <button
+                    type="button"
+                    class="header-button"
+                    title="More"
+                >
+                    ⋮
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- MESSAGES -->
+
+        <main
+            class="messages-container"
+            id="messagesContainer"
         >
 
-        <button
-            type="submit"
-            id="sendButton"
-        >
-            Send
-        </button>
+        </main>
 
-    </form>
 
-</footer>
+        <!-- MESSAGE COMPOSER -->
 
+        <footer class="message-input-container">
+
+
+            <div
+                id="typingSuggestions"
+                class="ai-suggestions"
+            >
+            </div>
+
+
+            <div
+                id="smartReplies"
+                class="ai-suggestions"
+            >
+            </div>
+
+
+            <form id="messageForm">
+
+
+                <label
+                    for="mediaInput"
+                    class="attachment-button"
+                    title="Attach file"
+                >
+                    📎
+                </label>
+
+
+                <input
+                    type="file"
+                    id="mediaInput"
+                    hidden
+                >
+
+
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Write a message..."
+                    autocomplete="off"
+                >
+
+
+                <button
+                    type="submit"
+                    id="sendButton"
+                    title="Send message"
+                >
+                    ➤
+                </button>
+
+            </form>
+
+
+        </footer>
+
+
+    </section>
 
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
@@ -155,3 +259,4 @@
 </body>
 
 </html>
+

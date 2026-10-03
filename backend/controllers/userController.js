@@ -166,50 +166,50 @@ try {
 
 const checkUser = async (req, res) => {
 
+    try {
 
-try {
+        const { email } = req.query;
 
-    const { email } = req.query;
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
 
-    if (!email) {
-        return res.status(400).json({
-            message: "Email is required"
+        const normalizedEmail =
+            email.trim().toLowerCase();
+
+        const user =
+            await User.findOne({
+                where: {
+                    email: normalizedEmail
+                }
+            });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "User exists",
+            userId: user.id,
+            name: user.name,
+            email: user.email
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Something went wrong"
         });
     }
-
-    const normalizedEmail =
-        email.trim().toLowerCase();
-
-    const user =
-        await User.findOne({
-            where: {
-                email: normalizedEmail
-            }
-        });
-
-    if (!user) {
-        return res.status(404).json({
-            message: "User not found"
-        });
-    }
-
-    return res.status(200).json({
-        message: "User exists",
-        userId: user.id,
-        email: user.email
-    });
-
-} catch (error) {
-
-    console.error(error);
-
-    return res.status(500).json({
-        message: "Something went wrong"
-    });
-}
-
-
 };
+
+
 
 module.exports = {
 signup,

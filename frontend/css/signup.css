@@ -1,54 +1,66 @@
+css
+/* ============================= */
+/* GLOBAL */
+/* ============================= */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-
-/* ================================
-   BODY
-================================ */
-
 body {
+    font-family: "Inter", sans-serif;
+
     min-height: 100vh;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
 
     display: flex;
-    justify-content: center;
     align-items: center;
-
-    color: #ffffff;
+    justify-content: center;
 
     background:
-        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.25), transparent 30%),
-        radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.22), transparent 30%),
-        #070711;
+        linear-gradient(
+            135deg,
+            #151326 0%,
+            #211b38 50%,
+            #30234a 100%
+        );
 
-    overflow: hidden;
+    color: #2d273d;
+
+    position: relative;
+
+    overflow-y: auto;
 }
 
 
-/* ================================
-   BACKGROUND GLOW
-================================ */
+/* ============================= */
+/* BACKGROUND DESIGN */
+/* ============================= */
 
 body::before {
     content: "";
+
     position: fixed;
 
-    width: 350px;
-    height: 350px;
+    width: 420px;
+    height: 420px;
 
-    background: rgba(139, 92, 246, 0.15);
+    top: -180px;
+    left: -120px;
 
     border-radius: 50%;
 
-    filter: blur(100px);
+    background:
+        radial-gradient(
+            circle,
+            rgba(145, 111, 225, 0.28),
+            transparent 70%
+        );
 
-    top: -120px;
-    right: -80px;
+    filter: blur(10px);
 
-    animation: floatGlow 7s ease-in-out infinite alternate;
+    pointer-events: none;
 }
 
 
@@ -57,349 +69,442 @@ body::after {
 
     position: fixed;
 
-    width: 300px;
-    height: 300px;
+    width: 350px;
+    height: 350px;
 
-    background: rgba(59, 130, 246, 0.12);
+    right: -120px;
+    bottom: -170px;
 
     border-radius: 50%;
 
-    filter: blur(100px);
+    background:
+        radial-gradient(
+            circle,
+            rgba(191, 117, 219, 0.18),
+            transparent 70%
+        );
 
-    bottom: -100px;
-    left: -80px;
-
-    animation: floatGlow 9s ease-in-out infinite alternate-reverse;
+    pointer-events: none;
 }
 
 
-@keyframes floatGlow {
-    from {
-        transform: translate(0, 0);
-    }
-
-    to {
-        transform: translate(40px, 30px);
-    }
-}
-
-
-/* ================================
-   MAIN CONTAINER
-================================ */
+/* ============================= */
+/* CONTAINER */
+/* ============================= */
 
 .container {
     width: 100%;
-    max-width: 480px;
 
-    padding: 25px;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
 
     position: relative;
-    z-index: 2;
+
+    z-index: 1;
 }
 
 
-/* ================================
-   FORM CARD
-================================ */
+/* ============================= */
+/* FORM BOX */
+/* ============================= */
 
 .form-box {
+    width: 100%;
 
-    padding: 42px;
+    max-width: 440px;
 
-    border-radius: 24px;
+    padding: 27px 34px 24px;
 
-    background: rgba(17, 17, 29, 0.78);
+    position: relative;
 
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    background:
+        linear-gradient(
+            145deg,
+            #f5f2fa 0%,
+            #ebe6f5 100%
+        );
 
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    border:
+        1px solid rgba(255, 255, 255, 0.35);
+
+    border-radius: 22px;
 
     box-shadow:
-        0 30px 80px rgba(0, 0, 0, 0.55),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        0 22px 60px rgba(10, 7, 25, 0.45);
 
-    animation: cardAppear 0.7s ease forwards;
+    overflow: hidden;
 }
 
 
-@keyframes cardAppear {
+/* ============================= */
+/* TOP ACCENT */
+/* ============================= */
 
-    from {
-        opacity: 0;
-        transform: translateY(25px) scale(0.97);
-    }
+.form-box::before {
+    content: "";
 
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    position: absolute;
+
+    top: 0;
+    left: 8%;
+    right: 8%;
+
+    height: 3px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #8063ff,
+            #b85ae3,
+            #8063ff,
+            transparent
+        );
+
+    box-shadow:
+        0 0 14px rgba(128, 99, 255, 0.5);
 }
 
 
-/* ================================
-   TITLE
-================================ */
+/* ============================= */
+/* DECORATION */
+/* ============================= */
+
+.form-box::after {
+    content: "";
+
+    position: absolute;
+
+    width: 160px;
+    height: 160px;
+
+    top: -100px;
+    right: -70px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(137, 104, 216, 0.14);
+
+    filter: blur(15px);
+
+    pointer-events: none;
+}
+
+
+/* ============================= */
+/* HEADING */
+/* ============================= */
 
 h1 {
     text-align: center;
-    font-size: 34px;
+
+    color: #302847;
+
+    font-size: 24px;
+
     font-weight: 700;
-    letter-spacing: -1px;
-    margin-bottom: 10px;
-    color: #c4b5fd;
+
+    letter-spacing: -0.5px;
+
+    position: relative;
+
+    z-index: 1;
 }
 
 
 .subtitle {
+    margin-top: 5px;
+
+    margin-bottom: 20px;
 
     text-align: center;
 
-    color: #9292a7;
+    color: #85809a;
 
-    font-size: 14px;
+    font-size: 12px;
 
-    margin-bottom: 32px;
+    position: relative;
+
+    z-index: 1;
 }
 
 
-/* ================================
-   INPUT GROUP
-================================ */
+/* ============================= */
+/* INPUT GROUP */
+/* ============================= */
 
 .input-group {
+    margin-bottom: 10px;
 
-    margin-bottom: 20px;
+    position: relative;
+
+    z-index: 1;
 }
 
 
 .input-group label {
-
     display: block;
 
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 
-    font-size: 13px;
+    color: #4a435c;
+
+    font-size: 11px;
 
     font-weight: 600;
-
-    color: #c8c8d8;
-
-    letter-spacing: 0.3px;
 }
 
 
-/* ================================
-   INPUT
-================================ */
-
 .input-group input {
-
     width: 100%;
 
-    padding: 14px 16px;
+    height: 42px;
 
-    border-radius: 12px;
+    padding: 0 13px;
 
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    border:
+        1px solid #d6cee5;
 
-    background: rgba(255, 255, 255, 0.045);
-
-    color: #ffffff;
-
-    font-size: 14px;
+    border-radius: 10px;
 
     outline: none;
 
+    background:
+        rgba(255, 255, 255, 0.82);
+
+    color: #2d283c;
+
+    font-family: inherit;
+
+    font-size: 12px;
+
     transition:
-        border-color 0.25s ease,
-        box-shadow 0.25s ease,
-        background 0.25s ease,
-        transform 0.25s ease;
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
-
-/* Placeholder */
 
 .input-group input::placeholder {
-
-    color: #666679;
-
-    transition: color 0.25s ease;
+    color: #aaa4b6;
 }
 
 
-/* Focus */
+.input-group input:hover {
+    border-color: #c2b6db;
+}
+
 
 .input-group input:focus {
+    border-color: #8d72df;
 
-    border-color: #8b5cf6;
-
-    background: rgba(139, 92, 246, 0.07);
+    background: #ffffff;
 
     box-shadow:
-        0 0 0 3px rgba(139, 92, 246, 0.12),
-        0 0 25px rgba(139, 92, 246, 0.08);
-
-    transform: translateY(-1px);
+        0 0 0 3px rgba(124, 92, 255, 0.09);
 }
 
 
-.input-group input:focus::placeholder {
+/* ============================= */
+/* SIGNUP BUTTON */
+/* ============================= */
 
-    color: #85859b;
-}
-
-
-/* ================================
-   SIGNUP BUTTON
-================================ */
-
-button {
-
+#signupForm button[type="submit"] {
     width: 100%;
 
-    margin-top: 8px;
+    height: 44px;
 
-    padding: 15px;
+    margin-top: 5px;
 
     border: none;
 
-    border-radius: 12px;
-
-    color: #ffffff;
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-    letter-spacing: 0.2px;
-
-    cursor: pointer;
+    border-radius: 11px;
 
     background:
         linear-gradient(
             135deg,
-            #7c3aed,
-            #6366f1,
-            #3b82f6
+            #7055ef,
+            #a35bd8
         );
 
+    color: #ffffff;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
     box-shadow:
-        0 10px 30px rgba(99, 102, 241, 0.28);
+        0 8px 20px rgba(111, 84, 255, 0.28);
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        filter 0.25s ease;
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 
-/* Button hover */
-
-button:hover {
-
-    transform: translateY(-2px);
+#signupForm button[type="submit"]:hover {
+    transform:
+        translateY(-2px);
 
     box-shadow:
-        0 15px 35px rgba(99, 102, 241, 0.40);
-
-    filter: brightness(1.08);
+        0 11px 24px rgba(111, 84, 255, 0.38);
 }
 
 
-/* Button click */
-
-button:active {
-
-    transform: translateY(0);
-
-    box-shadow:
-        0 7px 18px rgba(99, 102, 241, 0.25);
+#signupForm button[type="submit"]:active {
+    transform:
+        scale(0.98);
 }
 
 
-/* ================================
-   MESSAGE
-================================ */
+/* ============================= */
+/* MESSAGE */
+/* ============================= */
 
 #message {
+    min-height: 17px;
+
+    margin-top: 8px;
 
     text-align: center;
 
-    margin-top: 15px;
+    color: #7055df;
 
-    font-size: 13px;
+    font-size: 11px;
 
-    color: #a78bfa;
+    font-weight: 600;
 }
 
 
-/* ================================
-   LOGIN LINK
-================================ */
+/* ============================= */
+/* LOGIN LINK */
+/* ============================= */
 
 .switch-page {
+    margin-top: 13px;
+
+    padding-top: 13px;
 
     text-align: center;
 
-    margin-top: 25px;
+    border-top:
+        1px solid #dcd5e8;
 
-    color: #77778b;
+    color: #85809a;
 
-    font-size: 13px;
+    font-size: 11px;
+
+    position: relative;
+
+    z-index: 1;
 }
 
 
 .switch-page a {
+    margin-left: 3px;
 
-    color: #a78bfa;
+    color: #7055df;
 
-    font-weight: 600;
+    font-weight: 700;
 
     text-decoration: none;
-
-    margin-left: 4px;
-
-    transition:
-        color 0.2s ease,
-        text-shadow 0.2s ease;
 }
 
 
 .switch-page a:hover {
+    color: #a052d8;
 
-    color: #c4b5fd;
-
-    text-shadow:
-        0 0 15px rgba(167, 139, 250, 0.6);
+    text-decoration: underline;
 }
 
 
-/* ================================
-   MOBILE RESPONSIVE
-================================ */
+/* ============================= */
+/* SMALL HEIGHT SCREENS */
+/* ============================= */
+
+@media (max-height: 700px) {
+
+    .container {
+        align-items: flex-start;
+
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+
+
+    .form-box {
+        padding-top: 22px;
+        padding-bottom: 20px;
+    }
+
+
+    .subtitle {
+        margin-bottom: 15px;
+    }
+
+
+    .input-group {
+        margin-bottom: 8px;
+    }
+
+
+    .input-group input {
+        height: 40px;
+    }
+
+
+    #signupForm button[type="submit"] {
+        height: 42px;
+    }
+
+
+    .switch-page {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+}
+
+
+/* ============================= */
+/* MOBILE */
+/* ============================= */
 
 @media (max-width: 500px) {
 
     .container {
-        padding: 18px;
+        padding: 15px;
     }
 
+
     .form-box {
-        padding: 30px 24px;
+        max-width: 100%;
+
+        padding:
+            25px
+            22px
+            22px;
 
         border-radius: 20px;
     }
 
+
     h1 {
-        font-size: 29px;
+        font-size: 22px;
     }
 
-    .subtitle {
-        margin-bottom: 27px;
-    }
 
+    .input-group input {
+        height: 43px;
+    }
 }
 
